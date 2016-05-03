@@ -121,3 +121,29 @@ data DuplicateData = DuplicateData
 
 instance Exception DuplicateData
 
+type UserRow = (Null, Text, Text, Text, Text, Text)
+
+getUser :: Connection -> Text -> IO (Maybe User)
+getUser conn username = do
+  results <- query conn getUserQuery (Only username)
+  case results of
+    [] -> return Nothing
+    [user] -> return (Just user)
+    _ -> throwIO DuplicateData
+
+createDatabase :: IO ()
+createDatabase = do
+  conn <- open "finger.db"
+  execute_ conn createUsers
+  execute  conn insertUser meRow
+  rows <- query_ conn allUsers
+  mapM_ print (rows :: [User])
+  SQLite.close conn
+  where meRow :: UserRow
+        meRow = (Null,
+                "stitess",
+                "/bin/bash",
+                "/Users/stitess",
+                "Sam Stites",
+                "123.456.7890")
+
