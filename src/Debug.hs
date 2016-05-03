@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 module Main where
 
 import Control.Monad (forever)
