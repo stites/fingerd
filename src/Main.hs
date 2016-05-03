@@ -116,3 +116,8 @@ allUsers = "SELECT * FROM users"
 getUserQuery :: Query
 getUserQuery = "SELECT * FROM users WHERE username = ?"
 
+data DuplicateData = DuplicateData
+  deriving (Eq, Show, Typeable)
+
+instance Exception DuplicateData
+
