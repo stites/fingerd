@@ -42,6 +42,20 @@ returnUser dbConn soc username = do
       return ()
     Just user -> sendAll soc (formatUser user)
 
+handleQuery :: Connction -> Socket -> IO ()
+handleQuery dbConn soc = do
+  msg <- recv soc 1024
+  case msg of
+    "\r\n" -> returnUsers dbConn soc
+    name -> returnUser dbConn soc (decodeUtf8 name)
+
+handleQueries :: Connection -> Socket -> IO ()
+handleQueries dbConn sock = forever $ do
+  (soc, _) <- accept sock
+  putStrLn "Got a connection, handling query"
+  handleQuery dbConn soc
+  sClose soc
+
 main :: IO ()
 main = putStrLn "hello world!"
 
