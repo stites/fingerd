@@ -75,3 +75,44 @@ main = withFingerSocket $ \sock -> do
   handleQueries conn sock
   SQLite.close conn
 
+data User = User {
+    userId        :: Integer
+  , username      :: Text
+  , shell         :: Text
+  , homeDirectory :: Text
+  , realName      :: Text
+  , phone         :: Text
+  } deriving (Eq, Show)
+
+instance FromRow User where
+  fromRow = User <$> field
+                 <*> field
+                 <*> field
+                 <*> field
+                 <*> field
+                 <*> field
+instance toRow User where
+  toRow (User id_  username  shell  homeDir  realName  phone) =
+       toRow (id_, username, shell, homeDir, realName, phone)
+
+createUsers :: Query
+createUsers = [r|
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT
+  , username      TEXT    UNIQUE
+  , shell         TEXT
+  , homeDirectory TEXT
+  , realName      TEXT
+  , phone         TEXT
+)
+|]
+
+insertUser :: Query
+insertUser = "INSERT INTO users VALUES (?,?,?,?,?,?)"
+
+allUsers :: Query
+allUsers = "SELECT * FROM users"
+
+getUserQuery :: Query
+getUserQuery = "SELECT * FROM users WHERE username = ?"
+
