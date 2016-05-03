@@ -1,0 +1,8 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- elision-0.1.2.0
+- text-1.2.2.0
+resolver: lts-5.1
