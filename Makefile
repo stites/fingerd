@@ -1,7 +1,7 @@
 build:
 	stack build
 
-debug:
+debug: build
 	stack exec sudo debug
 
 ghci-fingerd:
