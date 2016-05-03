@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 module Main where
 
 import Control.Monad (forever)
@@ -15,16 +14,19 @@ logAndEcho sock = forever $ do     -- ^ loop this forever with the y-combinator
           print msg                -- ^ print it literally
           sendAll conn msg         -- ^ relay the message back to the connection
 
-main :: IO ()
-main = withSocketsDo $ do
+withFingerSocket :: (Socket -> IO ()) -> IO ()
+withFingerSocket action = withSocketsDo $ do
   let addrInfoDefault = Just (defaultHints {addrFlags = [AI_PASSIVE]})
-  let serviceName = Just "79"
-  let hostName = Nothing
+      serviceName     = Just "79"
+      hostName        = Nothing
   addrinfos <- getAddrInfo addrInfoDefault hostName serviceName
   let serveraddr = head addrinfos
   sock <- socket (addrFamily serveraddr) Stream defaultProtocol
   bindSocket sock (addrAddress serveraddr)
   listen sock 1
-  logAndEcho sock
+  action sock
   sClose sock
+
+main :: IO ()
+main = withFingerSocket logAndEcho
 

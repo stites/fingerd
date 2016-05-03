@@ -56,8 +56,8 @@ handleQueries dbConn sock = forever $ do
   handleQuery dbConn soc
   sClose soc
 
-main :: IO ()
-main = withSocketsDo $ do
+withFingerSocket :: (Socket -> IO ()) -> IO ()
+withFingerSocket action = withSocketsDo $ do
   let addrInfoDefault = Just (defaultHints {addrFlags = [AI_PASSIVE]})
       serviceName     = Just "79"
       hostName        = Nothing
@@ -66,10 +66,12 @@ main = withSocketsDo $ do
   sock <- socket (addrFamily serveraddr) Stream defaultProtocol
   bindSocket sock (addrAddress serveraddr)
   listen sock 1
+  action sock
+  sClose sock
 
+main :: IO ()
+main = withFingerSocket $ \sock -> do
   conn <- open "finger.db"
   handleQueries conn sock
   SQLite.close conn
-
-  sClose sock
 
