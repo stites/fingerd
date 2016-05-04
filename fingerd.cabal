@@ -29,7 +29,7 @@ executable fingerd
                      , bytestring
                      , network
                      , raw-strings-qq
-                     -- , sqlite-simple
+                     , sqlite-simple
                      , text
 
 source-repository head

@@ -42,7 +42,7 @@ returnUser dbConn soc username = do
       return ()
     Just user -> sendAll soc (formatUser user)
 
-handleQuery :: Connction -> Socket -> IO ()
+handleQuery :: Connection -> Socket -> IO ()
 handleQuery dbConn soc = do
   msg <- recv soc 1024
   case msg of
@@ -70,10 +70,12 @@ withFingerSocket action = withSocketsDo $ do
   sClose sock
 
 main :: IO ()
-main = withFingerSocket $ \sock -> do
-  conn <- open "finger.db"
-  handleQueries conn sock
-  SQLite.close conn
+main = do
+  createDatabase
+  withFingerSocket $ \sock -> do
+    conn <- open "finger.db"
+    handleQueries conn sock
+    SQLite.close conn
 
 data User = User {
     userId        :: Integer
@@ -91,14 +93,14 @@ instance FromRow User where
                  <*> field
                  <*> field
                  <*> field
-instance toRow User where
+instance ToRow User where
   toRow (User id_  username  shell  homeDir  realName  phone) =
        toRow (id_, username, shell, homeDir, realName, phone)
 
 createUsers :: Query
 createUsers = [r|
-CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT
+CREATE TABLE IF NOT EXISTS users
+  ( id            INTEGER PRIMARY KEY AUTOINCREMENT
   , username      TEXT    UNIQUE
   , shell         TEXT
   , homeDirectory TEXT
@@ -131,19 +133,15 @@ getUser conn username = do
     [user] -> return (Just user)
     _ -> throwIO DuplicateData
 
+defaultRow :: UserRow
+defaultRow = (Null, "stitess", "/bin/bash", "/Users/stitess", "Sam Stites", "123.456.7890")
+
 createDatabase :: IO ()
 createDatabase = do
   conn <- open "finger.db"
   execute_ conn createUsers
-  execute  conn insertUser meRow
+  execute  conn insertUser defaultRow
   rows <- query_ conn allUsers
   mapM_ print (rows :: [User])
   SQLite.close conn
-  where meRow :: UserRow
-        meRow = (Null,
-                "stitess",
-                "/bin/bash",
-                "/Users/stitess",
-                "Sam Stites",
-                "123.456.7890")
 
